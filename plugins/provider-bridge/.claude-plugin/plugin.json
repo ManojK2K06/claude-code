@@ -1,0 +1,5 @@
+{
+  "name": "provider-bridge",
+  "version": "0.1.0",
+  "description": "Launch Claude Code using ChatGPT plan access, DeepSeek, or Gemini."
+}

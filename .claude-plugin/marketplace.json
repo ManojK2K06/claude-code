@@ -9,6 +9,13 @@
   },
   "plugins": [
     {
+      "name": "provider-bridge",
+      "description": "Launch Claude Code with ChatGPT plan access, DeepSeek, or Gemini",
+      "version": "0.1.0",
+      "source": "./plugins/provider-bridge",
+      "category": "development"
+    },
+    {
       "name": "agent-sdk-dev",
       "description": "Development kit for working with the Claude Agent SDK",
       "source": "./plugins/agent-sdk-dev",
