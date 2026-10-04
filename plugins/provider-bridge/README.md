@@ -14,7 +14,7 @@ node plugins/provider-bridge/bridge.mjs run chatgpt
 
 Choose **Continue with ChatGPT**, then allow this app to use your ChatGPT plan. OpenAI's Sign in with ChatGPT flow is a preview for eligible local/personal and open-source clients. Account/workspace availability and permissions determine whether inference is enabled. Usage consumes the plan allowance or credits available to this app, with limits shared across apps. This does not turn a Plus subscription into unrestricted API credits.
 
-The launcher discovers models for the connected account and defaults to the first visible model in OpenAI's catalog. To choose one explicitly:
+The launcher fetches the connected account's current model catalog and opens a numbered picker. Choose a model by number or ID. To choose one explicitly:
 
 ```powershell
 node plugins/provider-bridge/bridge.mjs run chatgpt --model YOUR_MODEL_SLUG
@@ -43,18 +43,43 @@ $env:DEEPSEEK_API_KEY = 'YOUR_DEEPSEEK_API_KEY'
 node plugins/provider-bridge/bridge.mjs run deepseek
 ```
 
-The default model is `deepseek-flash`; override with `--model` when needed. DeepSeek already exposes an Anthropic-compatible endpoint, so the launcher connects directly to `https://api.deepseek.com/anthropic`. Usage is billed to your DeepSeek API account.
+The launcher fetches DeepSeek's current model catalog and opens a picker; there is no fixed default model. Use `--model MODEL_ID` to skip the picker. DeepSeek already exposes an Anthropic-compatible endpoint, so the launcher connects directly to `https://api.deepseek.com/anthropic`. Usage is billed to your DeepSeek API account.
 
 ## Google Gemini
 
 ```powershell
 $env:GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY'
-node plugins/provider-bridge/bridge.mjs run gemini --model YOUR_GEMINI_MODEL
+node plugins/provider-bridge/bridge.mjs run gemini
 ```
 
-Choose an available model from Google AI Studio. The bridge translates Anthropic messages and local tool calls to Gemini's documented OpenAI-compatible Chat Completions endpoint. Usage follows Gemini API quotas/billing; this does not use a Gemini consumer-app subscription login.
+Choose a model from the fetched picker, or pass `--model MODEL_ID`. The bridge translates Anthropic messages and local tool calls to Gemini's documented OpenAI-compatible Chat Completions endpoint. Usage follows Gemini API quotas/billing; this does not use a Gemini consumer-app subscription login.
 
 On macOS/Linux, set keys with `export DEEPSEEK_API_KEY='...'` or `export GEMINI_API_KEY='...'` instead of PowerShell syntax. Never commit real keys or paste them into chat.
+
+## Live model discovery and selection
+
+List the current models for any connected provider:
+
+```powershell
+node plugins/provider-bridge/bridge.mjs models chatgpt
+node plugins/provider-bridge/bridge.mjs models deepseek
+node plugins/provider-bridge/bridge.mjs models gemini
+```
+
+Every `models` and `run` command fetches a fresh catalog using your provider credentials. New model IDs appear without a plugin update. Lists preserve provider ordering; the catalogs do not guarantee release-date order, so the first entry is not labeled the newest model. Requests fail explicitly if the catalog cannot be fetched or your requested model is no longer listed.
+
+Gemini discovery follows all catalog pages and lists Gemini models supporting content generation, excluding embedding, image-generation, audio, live, and other specialized endpoints. It removes Google's `models/` prefix for Claude and the Chat Completions API. Provider listing does not guarantee support for every local tool or Claude capability; inference still follows provider and account restrictions.
+
+In an interactive terminal, `run PROVIDER` opens the picker. Without an interactive terminal, supply `--model MODEL_ID`. The selected ID is applied to Claude's main model, default Opus/Sonnet/Haiku models, and subagents.
+
+Inside a launched bridge session:
+
+```text
+/provider-bridge:models chatgpt
+/model MODEL_ID
+```
+
+Replace `chatgpt` with `deepseek` or `gemini` for that provider. The plugin command fetches the live list and displays usable IDs. Enter `/model` yourself to select one for the same provider. ChatGPT/Gemini gateways honor the requested ID and refresh the catalog when the ID was not known at launch. DeepSeek receives model selections directly through its native endpoint. To change providers, launch a fresh session.
 
 ## Claude options and plugin installation
 
@@ -65,7 +90,7 @@ node plugins/provider-bridge/bridge.mjs run chatgpt -- --permission-mode default
 node plugins/provider-bridge/bridge.mjs run deepseek --claude 'C:\path\to\claude.exe'
 ```
 
-The launcher loads the bundled plugin automatically. Inside Claude, `/provider-bridge:help` explains setup. To load only the help command: `claude --plugin-dir ./plugins/provider-bridge`. To install from this repository's marketplace, use `/plugin install provider-bridge@claude-code-plugins` after adding the repository as a marketplace.
+The launcher loads the bundled plugin automatically. Inside Claude, `/provider-bridge:help` explains setup and `/provider-bridge:models PROVIDER` fetches the current model list. To load these commands separately: `claude --plugin-dir ./plugins/provider-bridge`. To install from this repository's marketplace, use `/plugin install provider-bridge@claude-code-plugins` after adding the repository as a marketplace.
 
 ## Compatibility and credential storage
 
@@ -96,3 +121,9 @@ Official protocol references (checked October 3, 2026):
 - [Claude Code gateway compatibility](https://code.claude.com/docs/en/llm-gateway-protocol)
 - [DeepSeek Claude Code integration](https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/)
 - [Gemini OpenAI compatibility](https://ai.google.dev/gemini-api/docs/openai)
+
+Model discovery references (checked October 4, 2026):
+
+- [OpenAI account-specific model catalog](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
+- [DeepSeek models endpoint](https://api-docs.deepseek.com/api/list-models/)
+- [Gemini models and pagination](https://ai.google.dev/api/models)

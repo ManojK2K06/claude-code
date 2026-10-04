@@ -10,8 +10,8 @@
   "plugins": [
     {
       "name": "provider-bridge",
-      "description": "Launch Claude Code with ChatGPT plan access, DeepSeek, or Gemini",
-      "version": "0.1.0",
+      "description": "Launch Claude Code with ChatGPT plan access, DeepSeek, or Gemini and live model selection",
+      "version": "0.2.0",
       "source": "./plugins/provider-bridge",
       "category": "development"
     },

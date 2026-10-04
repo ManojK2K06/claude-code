@@ -12,7 +12,7 @@ Learn more in the [official plugins documentation](https://docs.claude.com/en/do
 
 | Name | Description | Contents |
 |------|-------------|----------|
-| [provider-bridge](./provider-bridge/) | Launch Claude Code with ChatGPT plan access, DeepSeek, or Gemini | **Launcher:** browser login for ChatGPT, direct DeepSeek connection, and a local Gemini gateway<br>**Command:** `/provider-bridge:help` - Setup and usage |
+| [provider-bridge](./provider-bridge/) | Launch Claude Code with ChatGPT plan access, DeepSeek, or Gemini and live model selection | **Launcher:** browser login, fresh provider catalogs, and a model picker<br>**Commands:** `/provider-bridge:help` - Setup and usage; `/provider-bridge:models` - Fetch current model IDs |
 | [agent-sdk-dev](./agent-sdk-dev/) | Development kit for working with the Claude Agent SDK | **Command:** `/new-sdk-app` - Interactive setup for new Agent SDK projects<br>**Agents:** `agent-sdk-verifier-py`, `agent-sdk-verifier-ts` - Validate SDK applications against best practices |
 | [claude-opus-4-5-migration](./claude-opus-4-5-migration/) | Migrate code and prompts from Sonnet 4.x and Opus 4.1 to Opus 4.5 | **Skill:** `claude-opus-4-5-migration` - Automated migration of model strings, beta headers, and prompt adjustments |
 | [code-review](./code-review/) | Automated PR code review using multiple specialized agents with confidence-based scoring to filter false positives | **Command:** `/code-review` - Automated PR review workflow<br>**Agents:** 5 parallel Sonnet agents for CLAUDE.md compliance, bug detection, historical context, PR history, and code comments |

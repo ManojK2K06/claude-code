@@ -10,12 +10,24 @@ function parseCall(name, args, tools) {
   return input;
 }
 
-export function provider({ kind, model, token, fetcher = fetch }) {
+export function provider({ kind, model, token, fetcher = fetch, allowedModels, refreshModels }) {
   // Per-launch memory preserves opaque reasoning and Gemini thought signatures.
   const cache = new Map();
+  let catalog = allowedModels ? new Set(allowedModels) : undefined;
+  let refresh;
   return { kind, model, cache, async *run(body, signal) {
+    let selectedModel = model;
+    if (catalog) {
+      selectedModel = (body.model || model).replace(/^models\//, '');
+      if (!catalog.has(selectedModel) && refreshModels) {
+        // A model selected through /model may have appeared since launch.
+        refresh ||= Promise.resolve().then(refreshModels).then(ids => { catalog = new Set(ids); }).finally(() => { refresh = undefined; });
+        await refresh;
+      }
+      if (!catalog.has(selectedModel)) throw new BridgeError('Selected model is unavailable in the current provider catalog. Use /provider-bridge:models to list available IDs.');
+    }
     if (kind === 'chatgpt') {
-      const request = toResponses(body, model, cache);
+      const request = toResponses(body, selectedModel, cache);
       const response = await fetchChecked('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${await token()}` }, body: JSON.stringify(request), signal }, fetcher);
       let completed;
       let streamedText = '';
@@ -53,7 +65,7 @@ export function provider({ kind, model, token, fetcher = fetch }) {
       return;
     }
     if (kind !== 'gemini') throw new BridgeError('Unknown provider.');
-    const request = toChatCompletions(body, model, cache);
+    const request = toChatCompletions(body, selectedModel, cache);
     const response = await fetchChecked('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${await token()}` }, body: JSON.stringify(request), signal }, fetcher);
     let text = '', finish, usage = {}, done = false;
     const tools = new Map();
