@@ -4,6 +4,58 @@ Use Claude Code's terminal and local coding tools with ChatGPT plan access, Deep
 
 Requires **Node.js 22+** and a separately installed **native Claude Code CLI** (`claude --version`). This repository does not include that CLI's complete engine. No npm installation is needed for the bridge. These instructions run from the repository root; use the absolute path to `bridge.mjs` from another project directory. The launcher keeps your current directory as the working project.
 
+## Claude CLI commands
+
+Enable the wrapper in your current PowerShell terminal, from the repository root:
+
+```powershell
+. .\plugins\provider-bridge\scripts\enable-cli.ps1
+claude provider login chatgpt
+claude provider models chatgpt
+claude --provider chatgpt
+```
+
+For Bash on macOS/Linux:
+
+```bash
+source plugins/provider-bridge/scripts/enable-cli.sh
+claude provider login chatgpt
+claude provider models chatgpt
+claude --provider chatgpt
+```
+
+The wrapper adds these commands to your current shell. It keeps absolute launcher paths, so you can then change to another project directory. Ordinary commands such as `claude --version`, `claude auth login`, and `claude mcp list` pass through to the installed Claude CLI. The wrapper does not modify your profile or the Claude executable. Open a fresh terminal to return to the original command. An existing Claude function or alias must be resolved before enabling it. To choose an executable in PowerShell, supply `-ClaudeExecutable 'C:\path\to\claude.exe'` when sourcing the script.
+
+DeepSeek and Gemini use the same local API-key setup described below:
+
+```powershell
+claude provider models deepseek
+claude --provider deepseek
+claude provider models gemini
+claude --provider gemini
+```
+
+All providers fetch their current model catalog before launch. Interactive launches open the live picker. Scripts and piped input require an explicit model from `claude provider models PROVIDER`:
+
+```powershell
+claude --provider gemini --model MODEL_ID -p "Explain this project" --output-format json
+Get-Content .\notes.txt | claude --provider deepseek --model MODEL_ID -p "Summarize these notes"
+```
+
+Place `--provider` first, then bridge options (`--model`, `--claude`), then ordinary Claude arguments. An optional `--` separates bridge options from Claude arguments. Launcher status goes to standard error, preserving Claude's JSON or text on standard output. Arguments, piped input, working directory, and exit status are forwarded to Claude. PowerShell pipelines retain PowerShell's normal text encoding and newline behavior.
+
+Account commands are also available as `claude provider accounts`, `claude provider select ACCOUNT_ID`, `claude provider login chatgpt --new-account`, and `claude provider logout chatgpt`.
+
+For a separate command without wrapping `claude`, run:
+
+```powershell
+node plugins/provider-bridge/cli.mjs login chatgpt
+node plugins/provider-bridge/cli.mjs models chatgpt
+node plugins/provider-bridge/cli.mjs --provider chatgpt
+```
+
+The sourced wrappers also provide `claude-provider`. To make that separate command available in other terminals, optionally run `npm link` from `plugins/provider-bridge`, then use `claude-provider login chatgpt`, `claude-provider models PROVIDER`, or `claude-provider --provider PROVIDER`. `claude-provider run PROVIDER` is an equivalent launch syntax. The original `bridge.mjs` commands below remain available.
+
 ## ChatGPT Plus / Pro: browser login
 
 ```powershell

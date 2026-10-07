@@ -52,6 +52,7 @@ export async function main(argv = process.argv.slice(2), dependencies = {}) {
   const envSource = dependencies.env || process.env;
   const fetcher = dependencies.fetcher || fetch;
   const launch = dependencies.launch || launchClaude;
+  const status = dependencies.status || (message => console.error(message));
   if (command === 'accounts') {
     const record = await store.read();
     for (const p of record.profiles) console.log(`${p.id === record.active ? '*' : ' '} ${p.id}  ${p.email || '(registration pending)'}  ${p.access_token ? 'connected' : 'signed out'}  ${p.scopes?.includes('chatgpt.tokens.use.direct') ? 'plan usage enabled' : 'plan usage disabled'}`);
@@ -95,27 +96,27 @@ export async function main(argv = process.argv.slice(2), dependencies = {}) {
   if (opts.account || opts.newAccount) throw new Error('Use login --account, accounts, and select to manage accounts.');
   const executable = opts.claude || 'claude';
   const pluginDirectory = dirname(fileURLToPath(import.meta.url));
-  console.log(`Fetching current ${kind} models...`);
+  status(`Fetching current ${kind} models...`);
   const models = await listModels(kind, { token, fetcher });
   const model = await (dependencies.choose || chooseModel)(models, { requested: opts.model });
   if (kind === 'deepseek') {
     const env = launchEnvironment(envSource, { baseUrl: 'https://api.deepseek.com/anthropic', token: envSource.DEEPSEEK_API_KEY, model });
-    console.log(`Launching Claude Code with DeepSeek (${model}). Usage follows your DeepSeek API account.`);
+    status(`Launching Claude Code with DeepSeek (${model}). Usage follows your DeepSeek API account.`);
     return launch(executable, ['--plugin-dir', pluginDirectory, ...opts.forwarded], env);
   }
   if (kind === 'chatgpt') {
     const record = await store.read();
-    console.log(`ChatGPT account: ${record.profiles.find(p => p.id === record.active)?.email}. Plan usage enabled.`);
-    console.log('Manage usage: https://chatgpt.com/settings/usage');
+    status(`ChatGPT account: ${record.profiles.find(p => p.id === record.active)?.email}. Plan usage enabled.`);
+    status('Manage usage: https://chatgpt.com/settings/usage');
   } else {
-    console.log('Usage follows your Gemini API account.');
+    status('Usage follows your Gemini API account.');
   }
   const secret = randomBytes(32).toString('hex');
   const gateway = createGateway(provider({ kind, model, token, fetcher, allowedModels: models.map(m => m.id), refreshModels: async () => (await listModels(kind, { token, fetcher })).map(m => m.id) }), secret);
   await new Promise((resolve, reject) => { gateway.once('error', reject); gateway.listen(0, '127.0.0.1', resolve); });
   try {
     const env = launchEnvironment(envSource, { baseUrl: `http://127.0.0.1:${gateway.address().port}`, token: secret, model, translated: true });
-    console.log(`Launching Claude Code with ${kind} (${model}).`);
+    status(`Launching Claude Code with ${kind} (${model}).`);
     return await launch(executable, ['--plugin-dir', pluginDirectory, ...opts.forwarded], env);
   } finally { gateway.closeAllConnections(); await new Promise(resolve => gateway.close(resolve)); }
 }

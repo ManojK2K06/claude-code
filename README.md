@@ -49,6 +49,8 @@ For more installation options, uninstall steps, and troubleshooting, see the [se
 
 This repository includes several Claude Code plugins that extend functionality with custom commands and agents. See the [plugins directory](./plugins/README.md) for detailed documentation on available plugins.
 
+The [Provider Bridge](./plugins/provider-bridge/README.md) adds ChatGPT plan access, DeepSeek, Gemini, and live model selection to the Claude CLI through a local launcher. It includes a separate `claude-provider` command and optional shell wrappers for `claude --provider PROVIDER`.
+
 ## Reporting Bugs
 
 We welcome your feedback. Use the `/bug` command to report issues directly within Claude Code, or file a [GitHub issue](https://github.com/anthropics/claude-code/issues).
